@@ -109,6 +109,12 @@ describe('MVP account, community, channel and chat flow', () => {
     expect((await request('PUT', `/api/servers/${serverId}/members/${outsiderId}/roles/${moderatorRole.json().id}`, {}, cookie)).statusCode).toBe(200);
     const managedInvite = await request('POST', `/api/servers/${serverId}/invitations`, { expiresInHours: 24, maxUses: 2 }, outsiderCookie);
     expect(managedInvite.statusCode).toBe(201);
+    expect((await request('POST', `/api/servers/${serverId}/roles`, { name: 'Escalation', permissions: ['manage_roles'] }, outsiderCookie)).statusCode).toBe(403);
+    const elevatedRole = await request('POST', `/api/servers/${serverId}/roles`, { name: 'Channel Admin', permissions: ['manage_channels'] }, cookie);
+    expect(elevatedRole.statusCode).toBe(201);
+    expect((await request('PUT', `/api/servers/${serverId}/members/${outsiderId}/roles/${elevatedRole.json().id}`, {}, outsiderCookie)).statusCode).toBe(403);
+    expect((await request('PUT', `/api/servers/${serverId}/members/${userId}/roles/${elevatedRole.json().id}`, {}, cookie)).statusCode).toBe(200);
+    expect((await request('DELETE', `/api/servers/${serverId}/members/${userId}/roles/${elevatedRole.json().id}`, undefined, outsiderCookie)).statusCode).toBe(403);
 
     const target = await request('POST', '/api/auth/register', {
       username: `target_${suffix}`, displayName: 'Timeout Target', email: `target-${suffix}@example.test`, password: 'correct horse battery staple',

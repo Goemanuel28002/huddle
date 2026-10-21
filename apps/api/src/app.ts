@@ -9,7 +9,7 @@ import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import { and, count, desc, eq, gt, isNull, lt, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from './db/index.js';
-import { channels, invitations, memberRoles, messages, moderationActions, roles, serverMembers, serverRestrictions, servers, sessions, users, type RolePermission } from './db/schema.js';
+import { channels, invitations, memberRoles, messages, moderationActions, roles, rolePermissions, serverMembers, serverRestrictions, servers, sessions, users, type RolePermission } from './db/schema.js';
 import { hashToken, newSessionToken } from './security.js';
 
 const sessionCookie = 'sid';
@@ -66,15 +66,16 @@ export async function createApp(): Promise<FastifyInstance> {
       .where(and(eq(servers.id, serverId), eq(servers.ownerId, userId))).limit(1);
     return Boolean(owner);
   };
-  const hasPermission = async (serverId: string, userId: string, permission: RolePermission) => {
-    if (await ownerOf(serverId, userId)) return true;
-    if (!await memberOf(serverId, userId)) return false;
+  const permissionsFor = async (serverId: string, userId: string): Promise<Set<RolePermission>> => {
+    if (await ownerOf(serverId, userId)) return new Set(rolePermissions);
+    if (!await memberOf(serverId, userId)) return new Set();
     const assigned = await db.select({ roleId: memberRoles.roleId }).from(memberRoles)
       .where(and(eq(memberRoles.serverId, serverId), eq(memberRoles.userId, userId)));
     const assignedIds = new Set(assigned.map((role) => role.roleId));
     const grants = await db.select({ id: roles.id, isDefault: roles.isDefault, permissions: roles.permissions }).from(roles).where(eq(roles.serverId, serverId));
-    return grants.some((role) => (role.isDefault || assignedIds.has(role.id)) && role.permissions.includes(permission));
+    return new Set(grants.filter((role) => role.isDefault || assignedIds.has(role.id)).flatMap((role) => role.permissions));
   };
+  const hasPermission = async (serverId: string, userId: string, permission: RolePermission) => (await permissionsFor(serverId, userId)).has(permission);
   const activeRestriction = async (serverId: string, userId: string, kind: 'ban' | 'timeout') => {
     const [restriction] = await db.select().from(serverRestrictions)
       .where(and(eq(serverRestrictions.serverId, serverId), eq(serverRestrictions.userId, userId), eq(serverRestrictions.kind, kind))).limit(1);
@@ -205,6 +206,8 @@ export async function createApp(): Promise<FastifyInstance> {
     if (!await hasPermission(serverId, user.id, 'manage_roles')) return reply.code(403).send({ error: 'Dir fehlt die Berechtigung, Rollen zu verwalten.' });
     const parsed = z.object({ name: z.string().trim().min(2).max(48).regex(/^[\p{L}\p{N}_ -]+$/u), permissions: z.array(z.enum(['manage_invites', 'moderate_members', 'manage_channels', 'manage_roles', 'view_audit_log'])).max(5).default([]) }).safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: 'Ungültiger Rollenname oder Berechtigungen.' });
+    const actorPermissions = await permissionsFor(serverId, user.id);
+    if (parsed.data.permissions.some((permission) => !actorPermissions.has(permission))) return reply.code(403).send({ error: 'Du kannst nur Berechtigungen vergeben, die du selbst besitzt.' });
     const [created] = await db.insert(roles).values({ serverId, ...parsed.data, permissions: [...new Set(parsed.data.permissions)] }).returning({ id: roles.id, name: roles.name, permissions: roles.permissions, position: roles.position, isDefault: roles.isDefault });
     return reply.code(201).send(created);
   });
@@ -213,8 +216,10 @@ export async function createApp(): Promise<FastifyInstance> {
     const { serverId, targetId, roleId } = request.params as { serverId: string; targetId: string; roleId: string };
     if (!await hasPermission(serverId, user.id, 'manage_roles')) return reply.code(403).send({ error: 'Dir fehlt die Berechtigung, Rollen zu verwalten.' });
     if (!await memberOf(serverId, targetId)) return reply.code(404).send({ error: 'Mitglied nicht gefunden.' });
-    const [role] = await db.select({ id: roles.id, isDefault: roles.isDefault }).from(roles).where(and(eq(roles.id, roleId), eq(roles.serverId, serverId))).limit(1);
+    const [role] = await db.select({ id: roles.id, isDefault: roles.isDefault, permissions: roles.permissions }).from(roles).where(and(eq(roles.id, roleId), eq(roles.serverId, serverId))).limit(1);
     if (!role || role.isDefault) return reply.code(404).send({ error: 'Rolle nicht gefunden.' });
+    const actorPermissions = await permissionsFor(serverId, user.id);
+    if (role.permissions.some((permission) => !actorPermissions.has(permission))) return reply.code(403).send({ error: 'Du kannst nur Rollen mit deinen eigenen Berechtigungen vergeben.' });
     await db.insert(memberRoles).values({ serverId, userId: targetId, roleId }).onConflictDoNothing();
     return { ok: true };
   });
@@ -222,6 +227,10 @@ export async function createApp(): Promise<FastifyInstance> {
     const user = await requireUser(request, reply); if (!user) return reply;
     const { serverId, targetId, roleId } = request.params as { serverId: string; targetId: string; roleId: string };
     if (!await hasPermission(serverId, user.id, 'manage_roles')) return reply.code(403).send({ error: 'Dir fehlt die Berechtigung, Rollen zu verwalten.' });
+    const [role] = await db.select({ isDefault: roles.isDefault, permissions: roles.permissions }).from(roles).where(and(eq(roles.id, roleId), eq(roles.serverId, serverId))).limit(1);
+    if (!role || role.isDefault) return reply.code(404).send({ error: 'Rolle nicht gefunden.' });
+    const actorPermissions = await permissionsFor(serverId, user.id);
+    if (role.permissions.some((permission) => !actorPermissions.has(permission))) return reply.code(403).send({ error: 'Du kannst keine Rollen mit Berechtigungen entfernen, die du nicht selbst besitzt.' });
     await db.delete(memberRoles).where(and(eq(memberRoles.serverId, serverId), eq(memberRoles.userId, targetId), eq(memberRoles.roleId, roleId)));
     return { ok: true };
   });

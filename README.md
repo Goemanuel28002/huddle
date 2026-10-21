@@ -10,6 +10,7 @@ Connect Together ist eine eigenständige Community-Kommunikationsplattform mit W
 - Server und Text-/Voice-Kanäle mit serverseitiger Mitgliedschaftsprüfung.
 - Einladungen mit Ablaufzeit, Nutzungslimit und Widerruf; in der Datenbank wird nur der Token-Hash gespeichert.
 - Rollen mit `manage_invites`, `moderate_members`, `manage_channels`, `manage_roles` und `view_audit_log`.
+- Rollenverwalter können nur Rechte vergeben und Rollen ändern, deren Berechtigungen sie selbst besitzen.
 - Kick, Ban, Timeout und Aufhebung mit Moderationsprotokoll; Timeout sperrt Textnachrichten und den Voice-Mikrofonversand.
 - Persistente Textnachrichten, Verlauf, WebSocket-Push und Zugriffskontrolle.
 - LiveKit-Sprachkanäle mit kurzlebigen serverseitig signierten Beitrittstokens, Mikrofon, Push-to-Talk, Geräteauswahl, Teilnehmer-/Sprachanzeige und Wiederverbindungsstatus.

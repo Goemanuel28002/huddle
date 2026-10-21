@@ -85,7 +85,7 @@ Der MVP hat bereits Fremdschlüssel mit Kaskaden oder Restrict-Regeln und Indize
 | `notifications` | UUID PK; FK user cascade; Index (user,created_at) | Benachrichtigungszustand und gelesen-Status |
 | `audit_logs` | UUID PK; FK server, actor; Index (server,created_at) | administrative Ereignisse, kein Klartextpasswort/Sessiontoken |
 
-DMs werden später als eigenständige `conversations` und `conversation_members` modelliert, damit kein fiktiver Server oder Kanal Rechte umgeht. Rollenberechtigungen werden serverseitig berechnet; ein Client darf niemals eigene effektive Rechte behaupten.
+DMs werden später als eigenständige `conversations` und `conversation_members` modelliert, damit kein fiktiver Server oder Kanal Rechte umgeht. Rollenberechtigungen werden serverseitig berechnet; ein Client darf niemals eigene effektive Rechte behaupten. Rollenverwalter können nur Rechte vergeben oder Rollen verändern, deren Berechtigungen sie selbst besitzen, damit `manage_roles` nicht zur Rechteausweitung führt.
 
 Datenschutz: E-Mail-Adressen nicht in öffentlichen Member-Endpunkten ausgeben. Logs enthalten keine Passwörter, Cookies oder Token. Für Kontolöschung müssen Profil, Sessions, DMs und Aufbewahrungspflichten getrennt geregelt sein; Audit-/Moderationsdaten benötigen einen dokumentierten minimalen Aufbewahrungszeitraum und können eine Anonymisierung statt Kaskadenlöschung erfordern.
 
