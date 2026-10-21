@@ -2,7 +2,7 @@
 
 ## Ziel
 
-Huddle soll eine eigenständige Plattform sein, kein Discord-Klon mit kopierten Markenassets. Der Produktgrundsatz ist: Community-Kernfunktionen bleiben ohne Pflichtabo zugänglich; bezahlte Infrastruktur und freiwillige Finanzierung dürfen keine Sicherheits- oder Moderationsfunktionen zur Geisel machen. Für jeden externen Dienst werden Kosten, Datenfluss und Self-hosting-Optionen vor Aktivierung geprüft.
+Connect Together soll eine eigenständige Plattform sein, kein Discord-Klon mit kopierten Markenassets. Der Produktgrundsatz ist: Community-Kernfunktionen bleiben ohne Pflichtabo zugänglich; bezahlte Infrastruktur und freiwillige Finanzierung dürfen keine Sicherheits- oder Moderationsfunktionen zur Geisel machen. Für jeden externen Dienst werden Kosten, Datenfluss und Self-hosting-Optionen vor Aktivierung geprüft.
 
 ## Architektur
 
