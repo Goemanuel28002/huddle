@@ -1,0 +1,15 @@
+{
+  "name": "community-platform",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm --workspace @community/api run dev",
+    "dev:web": "npm --workspace web run dev",
+    "build": "npm --workspace @community/api run build && npm --workspace web run build",
+    "db:generate": "npm --workspace @community/api run db:generate",
+    "db:migrate": "npm --workspace @community/api run db:migrate",
+    "test": "npm --workspace @community/api test"
+  },
+  "devDependencies": {"concurrently": "^9.2.1"}
+}
