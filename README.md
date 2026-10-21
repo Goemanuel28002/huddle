@@ -1,5 +1,7 @@
 # Connect Together
 
+**Ein Ort, der euch verbindet.**
+
 Connect Together ist eine eigenständige Community-Kommunikationsplattform. Der Fokus liegt auf einem kostenlosen Kern, klaren Regeln und serverseitiger Zugriffskontrolle. Dieses Repository enthält den ersten vertikalen MVP-Abschnitt: Konten, Communities, Textkanäle und gespeicherte Echtzeitnachrichten.
 
 ## Entwicklungsstand
