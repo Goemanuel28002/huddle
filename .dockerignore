@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+!.env.preview.example
+node_modules
+**/node_modules
+**/dist
+coverage
+outputs
+work

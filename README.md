@@ -54,6 +54,26 @@ docker compose up -d postgres
 
 Die Compose-Zugangsdaten sind ausschließlich lokale Entwicklungswerte. Vor einem Deployment müssen Datenbankzugang, TLS, `COOKIE_SECURE=true`, Origin, Rate-Limits, Geheimnisse, Backups und die Betriebsumgebung angepasst werden.
 
+## Isolierter Docker-Vorschau-Stack
+
+Der zusätzliche `compose.preview.yml` ist ein eigenständiger Produktions-naher Container-Test. Er verwendet Port `8081` und ein separates Volume (`connect_together_preview_pgdata`); der bestehende PostgreSQL-Entwicklungscontainer und dessen Daten werden dabei nicht verändert. Die API wendet beim Start vorhandene Drizzle-Migrationen an. Das Vorschau-Passwort ist lokal zu ersetzen und darf nicht veröffentlicht werden.
+
+In PowerShell im Projektstamm:
+
+```powershell
+Copy-Item .env.preview.example .env.preview
+$env:POSTGRES_PASSWORD = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLower()
+(Get-Content .env.preview -Raw).Replace('replace-with-a-long-random-local-preview-password', $env:POSTGRES_PASSWORD) | Set-Content -Encoding ASCII .env.preview
+$dockerBin = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin"
+$env:PATH = "$dockerBin;$env:PATH"
+docker compose --env-file .env.preview -f compose.preview.yml up --build -d
+Invoke-RestMethod http://localhost:8081/api/health
+```
+
+Die Erfolgsmeldung des letzten Befehls enthält `ok: true`; anschließend öffnet sich die App unter `http://localhost:8081`. Bei erstem Start werden Frontend und API-Images gebaut. Logs: `docker compose --env-file .env.preview -f compose.preview.yml logs -f`. Der Stack kann mit `docker compose --env-file .env.preview -f compose.preview.yml down` beendet werden. Kein `-v` verwenden, wenn du die Vorschau-Datenbank behalten willst.
+
+Diese Vorschau ist nur auf dem eigenen Rechner erreichbar und kein öffentlicher Dienst. Für einen öffentlichen HTTPS-Deploy braucht es noch einen erreichbaren Host, Domain/TLS, sichere Server-Secrets, Backups und Betriebsüberwachung. Voice/Video, E-Mail-Verifizierung, Passwortwiederherstellung, Einladungen, Rollen und Uploads sind im MVP weiterhin nicht implementiert; die App ist noch nicht bereit, echte Nutzerkonten öffentlich zu hosten.
+
 ## Prüfen
 
 ```powershell
