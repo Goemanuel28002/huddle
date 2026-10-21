@@ -12,7 +12,7 @@ Browser (React + TypeScript + Vite)
        ├── REST ── Fastify ── Drizzle ── PostgreSQL
        └── WebSocket ────────────────┘
 
-Ausbaustufen: Redis (Präsenz/pub-sub) · S3 API (Medien) · LiveKit (Voice/Video SFU)
+Ausbaustufen: Redis (Präsenz/pub-sub) · S3 API (Medien). LiveKit ist für Voice bereits in der isolierten lokalen Vorschau integriert.
 ```
 
 Für den Einzelserver-MVP ist PostgreSQL die dauerhafte Quelle der Wahrheit. REST führt normale Änderungen aus; WebSocket überträgt Ereignisse nur an bereits autorisierte Verbindungen. Bei mehreren API-Instanzen wird Redis Pub/Sub oder ein vergleichbarer Adapter nötig. Redis ist keine zusätzliche Quelle für Nachrichteninhalte.
@@ -35,10 +35,12 @@ docker-compose.yml     lokale PostgreSQL-Entwicklung
 
 ## Jetzt eingesetzte Pakete
 
-- UI: React, TypeScript, Vite.
+- UI: React, TypeScript, Vite, `vite-plugin-pwa`.
+- Desktop: Electron mit `contextIsolation`, Sandbox, isoliertem Preload und HTTPS-Serverbindung.
 - API: Fastify, `@fastify/cookie`, `@fastify/cors`, `@fastify/rate-limit`, `@fastify/websocket`, Zod.
 - Daten: PostgreSQL 17, `pg`, Drizzle ORM und Drizzle Kit.
 - Sicherheit: Argon2id (`argon2`), SHA-256-Hash für zufällige Session-Token, HttpOnly/SameSite-Cookie, Origin-Prüfung für zustandsändernde HTTP-Anfragen, Berechtigungsprüfung für Kanal-/Nachrichtenabfragen.
+- Voice: LiveKit SFU, `livekit-server-sdk` für kurzlebige serverseitige JWT-Grants und `livekit-client` für WebRTC-Audio.
 - Qualität: TypeScript-Build und Vitest-Integrationstests.
 
 TanStack Query und ein Router werden ergänzt, sobald die App mehr Seiten und Cache-Invalidierungen hat. Redis und Objektspeicher sind im MVP nicht nötig. Kein kostenpflichtiger Dienst ist aktiviert.
@@ -50,7 +52,7 @@ TanStack Query und ein Router werden ergänzt, sobald die App mehr Seiten und Ca
 | Relationale Daten | PostgreSQL | MVP | Lokal in Compose; Produktionsbetrieb mit Backups und Migrationen |
 | Präsenz und verteilte Events | Redis | Mehrere API-Instanzen | In-Memory-Präsenz nur für erste Einzelinstanz; keine Chat-Historie dort |
 | Uploads | S3-kompatibler Speicher, lokal z. B. MinIO | nach Chat | Presigned URLs, Quoten, MIME-/Signaturprüfung, private Objekte |
-| Voice/Video | LiveKit SFU | Voice-Phase | echte Medienweitergabe; TURN, TLS, UDP-Erreichbarkeit und Betrieb einplanen |
+| Voice/Video | LiveKit SFU | Voice-Grundlage integriert | lokale echte Audio-Übertragung in Compose; öffentlicher Betrieb benötigt TLS/WSS, TURN/UDP-Erreichbarkeit und ein produktives Secret-Setup |
 | E-Mail | SMTP/API-Anbieter oder selbst betriebener Maildienst | Account-Recovery | erst nach Festlegung von Domain und Datenschutz-/Kostenrahmen |
 
 LiveKit Cloud wird nicht automatisch aktiviert. Self-hosting und Cloud haben unterschiedliche Betriebs- und Kostenauswirkungen; vor einem kostenpflichtigen Dienst ist eine explizite Freigabe nötig.
@@ -99,13 +101,13 @@ Datenschutz: E-Mail-Adressen nicht in öffentlichen Member-Endpunkten ausgeben. 
 ## Priorisierte Roadmap
 
 1. **MVP-Grundlage (fertig):** Monorepo, Vite/React, Fastify, PostgreSQL, Drizzle, Session-Auth, Community, Textkanäle, gespeicherter Echtzeitchat und API-Integrationstests.
-2. **Konten und Grundrechte:** Profileinstellungen, E-Mail-Verifizierung/Recovery, Sessionverwaltung, Rollen, Berechtigungsauflösung, Admin-Events und Einladungen.
+2. **Konten und Grundrechte (teilweise):** Rollen, Einladungen, Berechtigungsauflösung und Moderationsprotokoll sind integriert. Profilbearbeitung, E-Mail-Verifizierung/Recovery und vollständige Sessionverwaltung fehlen.
 3. **Chatqualität:** Bearbeiten/Löschen, Antworten, Reaktionen, Pagination-Cursor, Erwähnungen, ungelesen-Zustände, Suche, sichere Markdown-Ausgabe und Meldungen.
-4. **Community-Sicherheit:** Moderationswarteschlange, Timeout/Ban/Kick, Audit-Log, Blocklisten, Rate-/Spam-Grenzen und Abuse-Monitoring.
+4. **Community-Sicherheit (teilweise):** Kick, Timeout, Ban, Aufhebung und Protokoll sind integriert. Meldungswarteschlange, Blocklisten, feinere Kanalrechte und Abuse-Monitoring fehlen.
 5. **Direktnachrichten und Benachrichtigungen:** Freundschaften, Blocks, Gruppenkonversationen, Datenschutz und Nutzerpräferenzen.
 6. **Dateien:** S3-kompatible Uploads, Quoten, Malware-Prüfung, Content-Disposition und sichere Vorschauen.
-7. **Voice/Video:** LiveKit-SFU mit echter WebRTC-Übertragung, serverseitige Join-Tokens, TURN/TLS, Mikrofon-/Ausgabesteuerung; anschließend Video und Screensharing.
-8. **Skalierung und Release:** Redis für Präsenz/Pub-Sub, Lasttests, Barrierefreiheit, CI, Deployment, Observability, Backup-/Restore-Probe und Sicherheitsreview.
+7. **Voice/Video (teilweise):** LiveKit-SFU, kurzlebige serverseitige Voice-Tokens, Mikrofon-/Ausgabesteuerung und Push-to-Talk sind integriert. Video und Screensharing benötigen eigene Medien- und UI-Arbeit.
+8. **Skalierung und Release:** Redis für Präsenz/Pub-Sub, Lasttests, Barrierefreiheit, CI, öffentliches Deployment, Observability, Backup-/Restore-Probe und Sicherheitsreview. Eine lokale Windows-Installer-Konfiguration und PWA sind vorhanden; der Installer muss noch gebaut und geprüft werden.
 
 ## Erstes klares Prüfkriterium
 

@@ -2,37 +2,43 @@
 
 **Ein Ort, der euch verbindet.**
 
-Connect Together ist eine eigenständige Community-Kommunikationsplattform. Der Fokus liegt auf einem kostenlosen Kern, klaren Regeln und serverseitiger Zugriffskontrolle. Dieses Repository enthält den ersten vertikalen MVP-Abschnitt: Konten, Communities, Textkanäle und gespeicherte Echtzeitnachrichten.
+Connect Together ist eine eigenständige Community-Kommunikationsplattform mit Web-App und Windows-Desktop-Client. Der aktuelle Entwicklungsstand ist ein testbarer Community-MVP-Ausbau: Konten, Server, Einladungen, Rollen, Moderation, persistenter Textchat und echte Voice-Übertragung über LiveKit. Das Projekt ist noch kein öffentlicher, betreuter Dienst.
 
-## Entwicklungsstand
+## Funktionsumfang
 
-Bereits umgesetzt:
+- Registrierung und Anmeldung mit Argon2id-Passworthashes und widerrufbaren Datenbank-Sessions.
+- Server und Text-/Voice-Kanäle mit serverseitiger Mitgliedschaftsprüfung.
+- Einladungen mit Ablaufzeit, Nutzungslimit und Widerruf; in der Datenbank wird nur der Token-Hash gespeichert.
+- Rollen mit `manage_invites`, `moderate_members`, `manage_channels`, `manage_roles` und `view_audit_log`.
+- Kick, Ban, Timeout und Aufhebung mit Moderationsprotokoll; Timeout sperrt Textnachrichten und den Voice-Mikrofonversand.
+- Persistente Textnachrichten, Verlauf, WebSocket-Push und Zugriffskontrolle.
+- LiveKit-Sprachkanäle mit kurzlebigen serverseitig signierten Beitrittstokens, Mikrofon, Push-to-Talk, Geräteauswahl, Teilnehmer-/Sprachanzeige und Wiederverbindungsstatus.
+- Installierbare Web-App (PWA) und Electron-Windows-Installer, der sich mit einer HTTPS-Instanz oder einem lokalen Server verbindet.
 
-- Registrierung und Anmeldung mit Argon2id-Passworthashes und datenbankgestützten Sessions.
-- HttpOnly-, SameSite-Session-Cookie; Anfragen mit Zustandsänderungen werden auf ihren Origin geprüft.
-- Communities erstellen und auflisten; beim Erstellen wird ein privater Mitglieder-Eintrag und der erste Textkanal angelegt.
-- Textkanäle erstellen und auflisten. Im MVP darf das nur der Serverinhaber.
-- Persistente Nachrichten, Verlauf mit limitierter Abfrage, WebSocket-Übertragung und Autorisierung für jeden REST- und WebSocket-Zugriff.
-- Responsive React-Oberfläche mit dunklem Standardtheme, optional hellem Theme, Community-/Kanalnavigation und Mitgliederübersicht.
-- Drizzle-Schema und Migration für die Tabellen `users`, `sessions`, `servers`, `server_members`, `channels` und `messages`.
+## Noch nicht enthalten
 
-Noch nicht implementiert: E-Mail-Verifizierung, Passwortzurücksetzung, Profilbearbeitung, Einladungen, Rollen, Moderation, Direktnachrichten, Freunde/Blocks, Suche, Benachrichtigungen, Uploads, Präsenz sowie Voice, Video und Bildschirmübertragung. Die sichtbaren Einladung-, Such- und Dateifunktionen weisen darauf hin, dass sie noch folgen; es gibt dafür keine simulierten Backend-Funktionen.
+Video, Bildschirmfreigabe, Direktnachrichten, Freundschaften, E-Mail-Verifizierung/Wiederherstellung, vollständige Kanal-Overrides, Dateiuploads, globale Suche, Moderationsmeldungen und Mehrserver-Skalierung sind nicht implementiert. Voice-Video und eine öffentliche gehostete Instanz dürfen nicht als fertig beworben werden. Das PWA-App-Shell-Caching ermöglicht keinen Offline-Chat.
 
-## Architektur und Roadmap
+## Architektur
 
-Der detaillierte Architekturvorschlag, die geplante Verzeichnisstruktur, das erweiterte Datenmodell, externe Dienste und priorisierte Ausbauphasen stehen in [docs/architecture.md](docs/architecture.md).
+- React, TypeScript, Vite und `vite-plugin-pwa` für die Web-App.
+- Electron mit isoliertem Preload für den Windows-Desktop-Client.
+- Fastify REST API und WebSocket-Events, Zod-Eingabeprüfung.
+- PostgreSQL 17 und Drizzle ORM/Migrationen.
+- LiveKit SFU für echte WebRTC-Audiomedien; kein kostenpflichtiger Dienst ist aktiviert.
+- Docker Compose für lokale Entwicklung und isolierte Vorschau.
+
+Die ausführlichere Datenmodell- und Betriebsübersicht steht in [docs/architecture.md](docs/architecture.md).
 
 ## Voraussetzungen
 
-- Node.js 20.19+ (getestet mit Node.js 24.22.0) und npm.
-- Docker Desktop mit Docker Compose für PostgreSQL 17.
-- Git für Versionsverwaltung.
+- Node.js 20.19 oder neuer und npm.
+- Docker Desktop mit Docker Compose.
+- Für echten Voice-Betrieb: erreichbarer LiveKit-Endpunkt und freigegebene Medienports. In der lokalen Compose-Vorschau sind nur Entwicklungszugangsdaten eingerichtet.
 
-Im Workspace wurde Docker Desktop über `%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin` gefunden. Wenn `docker` in PowerShell nicht im PATH ist, kannst du den Docker-Befehl zunächst mit diesem vollständigen Pfad ausführen oder das Docker-Desktop-Verzeichnis dem PATH hinzufügen.
+## Lokal starten
 
-## Start in PowerShell
-
-Im Projektstammverzeichnis:
+In PowerShell im Repository-Verzeichnis:
 
 ```powershell
 npm install
@@ -42,23 +48,11 @@ npm run db:migrate
 npm run dev
 ```
 
-Die Web-App ist unter `http://localhost:5173`, die API unter `http://localhost:3000` erreichbar. Der API-Health-Check ist `GET /api/health`.
+Web-App: `http://localhost:5173`; API: `http://localhost:3000`. Dieser Standardstack enthält noch keinen LiveKit-Server; Voice ist erst in der isolierten Vorschau aktiviert.
 
-Wenn die Docker-CLI nicht im PATH liegt:
+## Isolierte Docker-Vorschau
 
-```powershell
-$dockerBin = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin"
-$env:PATH = "$dockerBin;$env:PATH"
-docker compose up -d postgres
-```
-
-Die Compose-Zugangsdaten sind ausschließlich lokale Entwicklungswerte. Vor einem Deployment müssen Datenbankzugang, TLS, `COOKIE_SECURE=true`, Origin, Rate-Limits, Geheimnisse, Backups und die Betriebsumgebung angepasst werden.
-
-## Isolierter Docker-Vorschau-Stack
-
-Der zusätzliche `compose.preview.yml` ist ein eigenständiger Produktions-naher Container-Test. Er verwendet Port `8081` und ein separates Volume (`connect_together_preview_pgdata`); der bestehende PostgreSQL-Entwicklungscontainer und dessen Daten werden dabei nicht verändert. Die API wendet beim Start vorhandene Drizzle-Migrationen an. Das Vorschau-Passwort ist lokal zu ersetzen und darf nicht veröffentlicht werden.
-
-In PowerShell im Projektstamm:
+Diese Vorschau läuft unter `http://localhost:8081`, nutzt ein eigenes PostgreSQL-Volume und startet zusätzlich LiveKit. Sie greift nicht auf die Datenbank des Standard-Entwicklungsstacks zu.
 
 ```powershell
 Copy-Item .env.preview.example .env.preview
@@ -70,25 +64,37 @@ docker compose --env-file .env.preview -f compose.preview.yml up --build -d
 Invoke-RestMethod http://localhost:8081/api/health
 ```
 
-Die Erfolgsmeldung des letzten Befehls enthält `ok: true`; anschließend öffnet sich die App unter `http://localhost:8081`. Bei erstem Start werden Frontend und API-Images gebaut. Logs: `docker compose --env-file .env.preview -f compose.preview.yml logs -f`. Der Stack kann mit `docker compose --env-file .env.preview -f compose.preview.yml down` beendet werden. Kein `-v` verwenden, wenn du die Vorschau-Datenbank behalten willst.
+Die Antwort muss `ok: true` enthalten. Öffne danach `http://localhost:8081`. Logs: `docker compose --env-file .env.preview -f compose.preview.yml logs -f`. Stoppen ohne Datenbank zu löschen: `docker compose --env-file .env.preview -f compose.preview.yml down`. Verwende kein `down -v`, wenn du die Vorschau-Daten behalten willst.
 
-Diese Vorschau ist nur auf dem eigenen Rechner erreichbar und kein öffentlicher Dienst. Für einen öffentlichen HTTPS-Deploy braucht es noch einen erreichbaren Host, Domain/TLS, sichere Server-Secrets, Backups und Betriebsüberwachung. Voice/Video, E-Mail-Verifizierung, Passwortwiederherstellung, Einladungen, Rollen und Uploads sind im MVP weiterhin nicht implementiert; die App ist noch nicht bereit, echte Nutzerkonten öffentlich zu hosten.
+Die in Compose eingetragenen LiveKit-Schlüssel sind nur für diese Loopback-Vorschau gedacht. Für einen öffentlichen Dienst müssen sie ersetzt werden. LiveKit benötigt TLS/WSS und aus dem Internet erreichbare Medienports; die lokale Docker-Adresse funktioniert nicht als öffentliche Serverkonfiguration. Der aktuelle Vorschau-Stack bindet Ports `7880/tcp`, `7881/tcp` und `7882/udp`.
 
-## Prüfen
+## Windows-App bauen
+
+Im Repository-Stamm in PowerShell:
+
+```powershell
+npm install
+npm run desktop:dist
+```
+
+Der NSIS-Installer wird unter `apps/desktop/release/` erzeugt. Beim ersten Start gibst du die HTTPS-Adresse einer bereits betriebenen Connect-Together-Instanz ein; für lokale Tests ist `http://localhost:8081` zulässig. Ohne öffentlich gehostetes Backend verbindet die veröffentlichte Installationsdatei noch keine Community. Der Installer ist nicht code-signiert und Windows kann deshalb einen SmartScreen-Hinweis anzeigen.
+
+Die PWA kann aus dem Browser installiert werden, sobald die Web-App über HTTPS ausgeliefert wird (localhost ist für lokale Tests zugelassen).
+
+## Build und Tests
 
 ```powershell
 npm run build
 npm test
+npm --workspace web run test:e2e
 ```
 
-`npm test` führt API-Integrationstests gegen PostgreSQL aus. Sie registrieren Testkonten, prüfen Anmeldung, Server/Kanäle, Speicherung und WebSocket-Empfang sowie die Ablehnung eines fremden Kontos und eines fremden Origins. Die Tests entfernen die erzeugten Testdaten.
+Die API-Integrationstests benötigen die PostgreSQL-Datenbank aus `.env`; sie prüfen Registrierung/Login, Server- und Kanalerstellung, Echtzeitnachrichten, Einladungen, Rollen, Moderation und Berechtigungsgrenzen. Sie erzeugen und entfernen eigene Testkonten. Der letzte bestätigte lokale Build und Testlauf ist am 22.10.2026 erfolgt.
 
-## Lokal geprüfter Stand
+Der zusätzliche Voice-End-to-end-Test benötigt den laufenden isolierten Vorschau-Stack, Microsoft Edge und dessen lokale Datenbankverbindung auf `127.0.0.1:55432`. Er nutzt nur künstliche Mikrofone und löscht anschließend seine eigenen Testkonten und Community-Daten.
 
-- `npm run db:migrate` — erfolgreich gegen den lokalen PostgreSQL-17-Container.
-- `npm run build` — Frontend und Backend erfolgreich gebaut.
-- `npm test` — 2 Integrationstests bestanden; umfasst persistierte Nachrichten und WebSocket-Push.
+## Öffentlicher Betrieb
 
-## Sitzungen
+`compose.preview.yml` ist nur für die lokale Vorschau bestimmt. Eine öffentliche Instanz braucht einen gewählten Host, Domain und TLS, sichere Produktionsschlüssel, erreichbare LiveKit-Medienports, Backups, Monitoring, E-Mail-Infrastruktur und Datenschutz-/Moderationsprozesse. Noch wurde kein Hosting oder kostenpflichtiger externer Dienst aktiviert.
 
-Der Browser erhält ein kryptografisch zufälliges Session-Token als HttpOnly-Cookie. In PostgreSQL liegt nur dessen SHA-256-Hash; der Passwort-Hash nutzt Argon2id. Chatnachrichten werden derzeit serverseitig im Klartext in PostgreSQL gespeichert. Es gibt keine Ende-zu-Ende-Verschlüsselung; für den Produktivbetrieb sind TLS sowie Datenbank- und Backup-Schutz erforderlich. Der MVP setzt noch kein E-Mail-Verfahren zur Kontowiederherstellung um und ist noch nicht für den öffentlichen Produktivbetrieb freigegeben.
+Der MVP speichert Nachrichten derzeit unverschlüsselt in PostgreSQL und bietet keine Ende-zu-Ende-Verschlüsselung. Vor einem öffentlichen Nutzerbetrieb sind ein vollständiger Sicherheits-, Datenschutz- und Betriebsreview erforderlich.

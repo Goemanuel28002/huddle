@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#18181d" />
+    <title>Connect Together verbinden</title>
+    <link rel="stylesheet" href="./setup.css" />
+  </head>
+  <body>
+    <main class="setup">
+      <div class="mark">✳</div>
+      <span class="eyebrow">DEIN ORT FÜR GEMEINSAME ZEIT</span>
+      <h1>Verbinde dich<br /><em>mit deinem Server.</em></h1>
+      <p>Connect Together verbindet dich mit deiner Community. Trag die Web-Adresse deines Servers ein, um loszulegen.</p>
+      <form id="connect-form">
+        <label for="server-url">Server-Adresse</label>
+        <input id="server-url" name="url" type="url" placeholder="https://chat.deine-domain.de" autocomplete="url" required />
+        <small>HTTPS ist für öffentliche Server erforderlich. Lokal kannst du http://localhost verwenden.</small>
+        <div id="error" role="alert" hidden></div>
+        <button id="connect-button" type="submit">Server öffnen <span>↗</span></button>
+      </form>
+      <footer><span>Connect Together</span><span>Ein Ort, der euch verbindet.</span></footer>
+    </main>
+    <script src="./setup.js"></script>
+  </body>
+</html>

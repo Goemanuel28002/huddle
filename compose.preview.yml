@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: connect_together
     volumes:
       - connect_together_preview_pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:55432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d connect_together"]
       interval: 5s
@@ -27,14 +29,31 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/connect_together
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8081}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LIVEKIT_SERVER_URL: http://livekit:7880
+      LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://localhost:7880}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-connect-together-local-livekit-secret-32chars}
     depends_on:
       postgres:
         condition: service_healthy
+      livekit:
+        condition: service_started
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  livekit:
+    image: livekit/livekit-server:v1.13.10
+    restart: unless-stopped
+    command: ["--config", "/etc/livekit.yaml", "--bind", "0.0.0.0"]
+    volumes:
+      - ./apps/livekit/livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "7880:7880/tcp"
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
 
   web:
     build:

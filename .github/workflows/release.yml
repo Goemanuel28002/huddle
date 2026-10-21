@@ -1,0 +1,61 @@
+name: Verify and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: community
+          POSTGRES_PASSWORD: community_ci_only
+          POSTGRES_DB: community
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U community -d community"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://community:community_ci_only@localhost:5432/community
+      WEB_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:migrate
+      - run: npm run build
+      - run: npm test
+
+  windows-installer:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run desktop:dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Connect Together ${{ github.ref_name }}
+          generate_release_notes: true
+          files: apps/desktop/release/Connect-Together-Setup-*.exe

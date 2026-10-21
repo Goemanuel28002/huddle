@@ -1,0 +1,10 @@
+port: 7880
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: false
+  enable_loopback_candidate: true
+keys:
+  devkey: connect-together-local-livekit-secret-32chars
+logging:
+  level: info

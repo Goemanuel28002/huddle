@@ -5,3 +5,6 @@ dist/
 !.env.example
 !.env.preview.example
 coverage/
+apps/desktop/release/
+apps/web/test-results/
+apps/web/playwright-report/

@@ -8,6 +8,13 @@
       "when": 1792622965400,
       "tag": "0000_stiff_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792624771748,
+      "tag": "0001_sweet_darkhawk",
+      "breakpoints": true
     }
   ]
 }

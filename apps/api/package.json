@@ -20,14 +20,15 @@
     "dotenv": "^16.6.1",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.6.1",
+    "livekit-server-sdk": "^2.19.1",
     "pg": "^8.16.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^24.8.1",
     "@types/pg": "^8.15.5",
-    "drizzle-kit": "^0.31.11",
     "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.11",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^5.0.5",
