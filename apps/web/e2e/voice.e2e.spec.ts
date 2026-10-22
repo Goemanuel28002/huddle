@@ -53,6 +53,8 @@ test('a guest joins an invited community and participants exchange real LiveKit 
   guestPage.on('pageerror', (error) => console.error(`[guest page error] ${error.message}`));
 
   await createAccount(ownerPage, ownerUsername, 'Voice Owner', ownerEmail);
+  await expect(ownerPage.locator('.invite-card')).toBeDisabled();
+  await expect(ownerPage.locator('.invite-card')).toContainText('Erstelle zuerst eine Community');
   await ownerPage.locator('.empty-state button').click();
   await ownerPage.getByLabel('Name deiner Community').fill(`Voice Room ${suffix}`);
   await ownerPage.getByLabel('Kurze Beschreibung').fill('LiveKit end-to-end check');
@@ -68,6 +70,7 @@ test('a guest joins an invited community and participants exchange real LiveKit 
 
   await ownerPage.locator('.right-callout button').click();
   const invitationUrl = await ownerPage.locator('.modal-card input[readonly]').inputValue();
+  await expect(ownerPage.locator('.modal-card')).toContainText('Die lokale Vorschau ist nur von diesem PC erreichbar');
   await ownerPage.locator('.modal-close').click();
   await guestPage.goto(invitationUrl);
   await guestPage.locator('.auth-switch button').click();
