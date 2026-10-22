@@ -1,6 +1,6 @@
 {
   "name": "@connect-together/desktop",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Connect Together desktop client",
   "author": "Connect Together contributors",
@@ -16,10 +16,24 @@
   "build": {
     "appId": "com.connecttogether.desktop",
     "productName": "Connect Together",
-    "directories": { "output": "release" },
-    "files": ["main.cjs", "preload.cjs", "renderer/**/*", "assets/**/*"],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "signExecutable": false,
       "icon": "assets/connect-together.ico",
       "artifactName": "Connect-Together-Setup-${version}.${ext}"

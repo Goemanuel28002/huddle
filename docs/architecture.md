@@ -52,7 +52,7 @@ TanStack Query und ein Router werden ergänzt, sobald die App mehr Seiten und Ca
 | Relationale Daten | PostgreSQL | MVP | Lokal in Compose; Produktionsbetrieb mit Backups und Migrationen |
 | Präsenz und verteilte Events | Redis | Mehrere API-Instanzen | In-Memory-Präsenz nur für erste Einzelinstanz; keine Chat-Historie dort |
 | Uploads | S3-kompatibler Speicher, lokal z. B. MinIO | nach Chat | Presigned URLs, Quoten, MIME-/Signaturprüfung, private Objekte |
-| Voice/Video | LiveKit SFU | Voice-Grundlage integriert | lokale echte Audio-Übertragung in Compose; öffentlicher Betrieb benötigt TLS/WSS, TURN/UDP-Erreichbarkeit und ein produktives Secret-Setup |
+| Voice/Video | LiveKit SFU | Sprache, Kamera und Bildschirmfreigabe integriert | lokale echte Audio-/Video-Übertragung in Compose; öffentlicher Betrieb benötigt TLS/WSS, TURN/UDP-Erreichbarkeit und ein produktives Secret-Setup |
 | E-Mail | SMTP/API-Anbieter oder selbst betriebener Maildienst | Account-Recovery | erst nach Festlegung von Domain und Datenschutz-/Kostenrahmen |
 
 LiveKit Cloud wird nicht automatisch aktiviert. Self-hosting und Cloud haben unterschiedliche Betriebs- und Kostenauswirkungen; vor einem kostenpflichtigen Dienst ist eine explizite Freigabe nötig.
@@ -106,8 +106,8 @@ Datenschutz: E-Mail-Adressen nicht in öffentlichen Member-Endpunkten ausgeben. 
 4. **Community-Sicherheit (teilweise):** Kick, Timeout, Ban, Aufhebung und Protokoll sind integriert. Meldungswarteschlange, Blocklisten, feinere Kanalrechte und Abuse-Monitoring fehlen.
 5. **Direktnachrichten und Benachrichtigungen:** Freundschaften, Blocks, Gruppenkonversationen, Datenschutz und Nutzerpräferenzen.
 6. **Dateien:** S3-kompatible Uploads, Quoten, Malware-Prüfung, Content-Disposition und sichere Vorschauen.
-7. **Voice/Video (teilweise):** LiveKit-SFU, kurzlebige serverseitige Voice-Tokens, Mikrofon-/Ausgabesteuerung und Push-to-Talk sind integriert. Video und Screensharing benötigen eigene Medien- und UI-Arbeit.
-8. **Skalierung und Release:** Redis für Präsenz/Pub-Sub, Lasttests, Barrierefreiheit, CI, öffentliches Deployment, Observability, Backup-/Restore-Probe und Sicherheitsreview. Eine lokale Windows-Installer-Konfiguration und PWA sind vorhanden; der Installer muss noch gebaut und geprüft werden.
+7. **Voice/Video (teilweise):** LiveKit-SFU, kurzlebige serverseitige Tokens, Mikrofon-/Ausgabesteuerung, Push-to-Talk, Kamera und Bildschirmfreigabe sind integriert. Für öffentlichen Betrieb fehlen TLS/WSS, TURN-/Firewall-Konfiguration, Lasttests und Geräte-/Netzwerk-QA auf weiteren Plattformen.
+8. **Skalierung und Release:** Redis für Präsenz/Pub-Sub, Lasttests, Barrierefreiheit, CI, öffentliches Deployment, Observability, Backup-/Restore-Probe und Sicherheitsreview. Eine lokale Windows-Installer-Konfiguration und PWA sind vorhanden; der Installer wird im Tag-Release gebaut.
 
 ## Erstes klares Prüfkriterium
 

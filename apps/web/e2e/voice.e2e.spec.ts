@@ -44,11 +44,13 @@ test.afterAll(async () => {
   } finally { await database.end(); }
 });
 
-test('a guest joins an invited community and both exchange real LiveKit audio tracks', async ({ browser }) => {
-  ownerContext = await browser.newContext({ permissions: ['microphone'] });
-  guestContext = await browser.newContext({ permissions: ['microphone'] });
+test('a guest joins an invited community and participants exchange real LiveKit audio, camera and screen-share tracks', async ({ browser }) => {
+  ownerContext = await browser.newContext({ permissions: ['microphone', 'camera'] });
+  guestContext = await browser.newContext({ permissions: ['microphone', 'camera'] });
   ownerPage = await ownerContext.newPage();
   guestPage = await guestContext.newPage();
+  ownerPage.on('pageerror', (error) => console.error(`[owner page error] ${error.message}`));
+  guestPage.on('pageerror', (error) => console.error(`[guest page error] ${error.message}`));
 
   await createAccount(ownerPage, ownerUsername, 'Voice Owner', ownerEmail);
   await ownerPage.locator('.empty-state button').click();
@@ -81,13 +83,34 @@ test('a guest joins an invited community and both exchange real LiveKit audio tr
 
   await guestPage.getByRole('button', { name: /lounge/ }).click();
   await ownerPage.getByRole('button', { name: /Voice beitreten/ }).click();
-  await expect(ownerPage.getByText('Verbunden · echte WebRTC-Audioverbindung')).toBeVisible();
+  await expect(ownerPage.getByText('Verbunden · echte WebRTC-Medienverbindung')).toBeVisible();
   await guestPage.getByRole('button', { name: /Voice beitreten/ }).click();
-  await expect(guestPage.getByText('Verbunden · echte WebRTC-Audioverbindung')).toBeVisible();
+  await expect(guestPage.getByText('Verbunden · echte WebRTC-Medienverbindung')).toBeVisible();
 
   await expect(ownerPage.locator('.voice-person')).toHaveCount(2, { timeout: 30_000 });
   await expect(guestPage.locator('.voice-person')).toHaveCount(2, { timeout: 30_000 });
   await expect(ownerPage.locator('.voice-audio-root audio')).toHaveCount(1, { timeout: 30_000 });
   await expect(guestPage.locator('.voice-audio-root audio')).toHaveCount(1, { timeout: 30_000 });
+
+  await ownerPage.getByRole('button', { name: 'Kamera an' }).click();
+  await expect(ownerPage.locator('.voice-video-tile video')).toHaveCount(1, { timeout: 30_000 });
+  await expect(guestPage.locator('.voice-video-tile video')).toHaveCount(1, { timeout: 30_000 });
+  await guestPage.getByRole('button', { name: 'Kamera an' }).click();
+  await expect(ownerPage.locator('.voice-video-tile video')).toHaveCount(2, { timeout: 30_000 });
+  await expect(guestPage.locator('.voice-video-tile video')).toHaveCount(2, { timeout: 30_000 });
+
+  await ownerPage.getByRole('button', { name: 'Bildschirm teilen' }).click();
+  await expect(ownerPage.locator('.voice-video-label', { hasText: 'Bildschirm' })).toBeVisible({ timeout: 30_000 });
+  await expect(guestPage.locator('.voice-video-label', { hasText: 'Bildschirm' })).toBeVisible({ timeout: 30_000 });
+  await expect(ownerPage.locator('.voice-video-tile video')).toHaveCount(3, { timeout: 30_000 });
+  await expect(guestPage.locator('.voice-video-tile video')).toHaveCount(3, { timeout: 30_000 });
+  await ownerPage.getByRole('button', { name: 'Teilen beenden' }).click();
+  await expect(ownerPage.locator('.voice-video-label', { hasText: 'Bildschirm' })).toHaveCount(0);
+  await expect(guestPage.locator('.voice-video-label', { hasText: 'Bildschirm' })).toHaveCount(0);
+  await expect(ownerPage.locator('.voice-video-tile video')).toHaveCount(2);
+  await expect(guestPage.locator('.voice-video-tile video')).toHaveCount(2);
+  await ownerPage.getByRole('button', { name: 'Kamera aus' }).click();
+  await expect(ownerPage.locator('.voice-video-tile video')).toHaveCount(1);
+  await expect(guestPage.locator('.voice-video-tile video')).toHaveCount(1);
 
 });

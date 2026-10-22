@@ -134,6 +134,7 @@ describe('MVP account, community, channel and chat flow', () => {
     const granted = JSON.parse(Buffer.from(voiceToken.json().token.split('.')[1], 'base64url').toString('utf8'));
     expect(granted.video.room).toBe(`${serverId}:${voiceChannel.json().id}`);
     expect(granted.video.roomJoin).toBe(true);
+    expect(granted.video.canPublishSources).toEqual(['microphone', 'camera', 'screen_share', 'screen_share_audio']);
     for (const [key, value] of Object.entries({ LIVEKIT_SERVER_URL: priorLiveKitEnv.server, LIVEKIT_PUBLIC_URL: priorLiveKitEnv.client, LIVEKIT_API_KEY: priorLiveKitEnv.key, LIVEKIT_API_SECRET: priorLiveKitEnv.secret })) {
       if (value === undefined) delete process.env[key]; else process.env[key] = value;
     }

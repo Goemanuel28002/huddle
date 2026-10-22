@@ -14,11 +14,13 @@ Connect Together ist eine eigenständige Community-Kommunikationsplattform mit W
 - Kick, Ban, Timeout und Aufhebung mit Moderationsprotokoll; Timeout sperrt Textnachrichten und den Voice-Mikrofonversand.
 - Persistente Textnachrichten, Verlauf, WebSocket-Push und Zugriffskontrolle.
 - LiveKit-Sprachkanäle mit kurzlebigen serverseitig signierten Beitrittstokens, Mikrofon, Push-to-Talk, Geräteauswahl, Teilnehmer-/Sprachanzeige und Wiederverbindungsstatus.
+- Echte Kamera- und Bildschirmfreigabe in Voice-Kanälen über den SFU, inklusive Teilnehmeransicht und Browserberechtigungsfehlern.
+- Auswahl von Mikrofon, Kamera und Audioausgabe.
 - Installierbare Web-App (PWA) und Electron-Windows-Installer, der sich mit einer HTTPS-Instanz oder einem lokalen Server verbindet.
 
 ## Noch nicht enthalten
 
-Video, Bildschirmfreigabe, Direktnachrichten, Freundschaften, E-Mail-Verifizierung/Wiederherstellung, vollständige Kanal-Overrides, Dateiuploads, globale Suche, Moderationsmeldungen und Mehrserver-Skalierung sind nicht implementiert. Voice-Video und eine öffentliche gehostete Instanz dürfen nicht als fertig beworben werden. Das PWA-App-Shell-Caching ermöglicht keinen Offline-Chat.
+Direktnachrichten, Freundschaften, E-Mail-Verifizierung/Wiederherstellung, vollständige Kanal-Overrides, Dateiuploads, globale Suche, Moderationsmeldungen und Mehrserver-Skalierung sind nicht implementiert. Eine öffentliche gehostete Instanz gibt es nicht. Das PWA-App-Shell-Caching ermöglicht keinen Offline-Chat.
 
 ## Architektur
 
@@ -26,7 +28,7 @@ Video, Bildschirmfreigabe, Direktnachrichten, Freundschaften, E-Mail-Verifizieru
 - Electron mit isoliertem Preload für den Windows-Desktop-Client.
 - Fastify REST API und WebSocket-Events, Zod-Eingabeprüfung.
 - PostgreSQL 17 und Drizzle ORM/Migrationen.
-- LiveKit SFU für echte WebRTC-Audiomedien; kein kostenpflichtiger Dienst ist aktiviert.
+- LiveKit SFU für echte WebRTC-Audio-, Kamera- und Bildschirmmedien; kein kostenpflichtiger Dienst ist aktiviert.
 - Docker Compose für lokale Entwicklung und isolierte Vorschau.
 
 Die ausführlichere Datenmodell- und Betriebsübersicht steht in [docs/architecture.md](docs/architecture.md).
@@ -92,7 +94,7 @@ npm --workspace web run test:e2e
 
 Die API-Integrationstests benötigen die PostgreSQL-Datenbank aus `.env`; sie prüfen Registrierung/Login, Server- und Kanalerstellung, Echtzeitnachrichten, Einladungen, Rollen, Moderation und Berechtigungsgrenzen. Sie erzeugen und entfernen eigene Testkonten. Der letzte bestätigte lokale Build und Testlauf ist am 22.10.2026 erfolgt.
 
-Der zusätzliche Voice-End-to-end-Test benötigt den laufenden isolierten Vorschau-Stack, Microsoft Edge und dessen lokale Datenbankverbindung auf `127.0.0.1:55432`. Er nutzt nur künstliche Mikrofone und löscht anschließend seine eigenen Testkonten und Community-Daten.
+Der zusätzliche Voice-/Video-End-to-end-Test benötigt den laufenden isolierten Vorschau-Stack, Microsoft Edge und dessen lokale Datenbankverbindung auf `127.0.0.1:55432`. Er nutzt künstliches Mikrofon, eine kleine synthetische Testkamera und Bildschirmaufnahme und löscht anschließend seine eigenen Testkonten und Community-Daten.
 
 ## Öffentlicher Betrieb
 

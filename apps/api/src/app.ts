@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import websocket from '@fastify/websocket';
 import argon2 from 'argon2';
 import { randomBytes } from 'node:crypto';
-import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { AccessToken, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import { and, count, desc, eq, gt, isNull, lt, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from './db/index.js';
@@ -190,7 +190,7 @@ export async function createApp(): Promise<FastifyInstance> {
     const timeout = await activeRestriction(channel.serverId, user.id, 'timeout');
     const roomName = `${channel.serverId}:${channel.id}`;
     const accessToken = new AccessToken(apiKey, apiSecret, { identity: user.id, name: user.displayName, ttl: '5m' });
-    accessToken.addGrant({ roomJoin: true, room: roomName, canPublish: !timeout, canSubscribe: true, canPublishData: false });
+    accessToken.addGrant({ roomJoin: true, room: roomName, canPublish: !timeout, canPublishSources: [TrackSource.MICROPHONE, TrackSource.CAMERA, TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO], canSubscribe: true, canPublishData: false });
     return { url: clientUrl, token: await accessToken.toJwt(), roomName, canPublish: !timeout };
   });
 
